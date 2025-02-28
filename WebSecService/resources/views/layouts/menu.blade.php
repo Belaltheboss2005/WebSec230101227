@@ -22,6 +22,12 @@
             <li class="nav-item">
                 <a class="nav-link" href="./transcript">Student transcript</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./products">Products</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./calculator">Calculator</a>
+            </li>
         </ul>
     </div>
 </nav>
