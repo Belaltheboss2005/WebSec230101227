@@ -16,6 +16,12 @@
             <li class="nav-item">
                 <a class="nav-link" href="./test">Test</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./minitest">Mini Test</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./transcript">Student transcript</a>
+            </li>
         </ul>
     </div>
 </nav>
