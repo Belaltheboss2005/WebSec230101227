@@ -28,6 +28,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="./calculator">Calculator</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./products2">Products 2</a>
+            </li>
         </ul>
     </div>
 </nav>

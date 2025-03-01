@@ -47,3 +47,28 @@ Route::get('products/delete/{product}', [ProductsController::class, 'delete'])->
 Route::get('/calculator', function () {
     return view('calculator');
 });
+
+Route::get('/products2', function () {
+    $products = [
+        [
+            'name' => 'Laptop',
+            'image' => 'https://via.placeholder.com/150',
+            'price' => 15000,
+            'description' => 'A high-performance laptop for all your needs.'
+        ],
+        [
+            'name' => 'Smartphone',
+            'image' => 'https://via.placeholder.com/150',
+            'price' => 8000,
+            'description' => 'A sleek smartphone with the latest features.'
+        ],
+        [
+            'name' => 'Headphones',
+            'image' => 'https://via.placeholder.com/150',
+            'price' => 2000,
+            'description' => 'Noise-canceling headphones for a great experience.'
+        ]
+    ];
+
+    return view('products2', compact('products'));
+});
