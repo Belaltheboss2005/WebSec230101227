@@ -47,5 +47,3 @@ Route::get('products/delete/{product}', [ProductsController::class, 'delete'])->
 Route::get('/calculator', function () {
     return view('calculator');
 });
-
-

@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="container">
-    <h1>Product List</h1>
+    <h1 class="mb-4">Product List</h1>
 
     <!-- Search Form -->
-    <form>
+    <form method="GET" action="{{ route('products_list') }}" class="mb-4">
         <div class="row">
-            <div class="col-md-3">
-                <input name="keywords" type="text" class="form-control" placeholder="Search" value="{{ request()->keywords }}">
+            <div class="col-md-2">
+                <input name="keywords" type="text" class="form-control" placeholder="Search Keywords" value="{{ request()->keywords }}">
             </div>
             <div class="col-md-2">
                 <input name="min_price" type="number" class="form-control" placeholder="Min Price" value="{{ request()->min_price }}">
@@ -19,36 +19,66 @@
                 <input name="max_price" type="number" class="form-control" placeholder="Max Price" value="{{ request()->max_price }}">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">Filter</button>
+                <select name="order_by" class="form-select">
+                    <option value="" disabled selected>Order By</option>
+                    <option value="name" {{ request()->order_by == 'name' ? 'selected' : '' }}>Name</option>
+                    <option value="price" {{ request()->order_by == 'price' ? 'selected' : '' }}>Price</option>
+                </select>
             </div>
             <div class="col-md-2">
-                <a href="{{ route('products_edit') }}" class="btn btn-success">Add Product</a>
+                <select name="order_direction" class="form-select">
+                    <option value="ASC" {{ request()->order_direction == 'ASC' ? 'selected' : '' }}>ASC</option>
+                    <option value="DESC" {{ request()->order_direction == 'DESC' ? 'selected' : '' }}>DESC</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{{ route('products_list') }}" class="btn btn-danger">Reset</a>
+                {{-- Reset redirects to remove filters --}}
             </div>
         </div>
     </form>
 
-    <!-- Display Products -->
-    @foreach($products as $product)
-    <div class="card mt-3">
-        <div class="card-body">
-            <h3>{{ $product->name }}</h3>
-            <p><strong>Model:</strong> {{ $product->model }}</p>
-            <p>{{ $product->description }}</p>
-            <strong>Price: ${{ $product->price }}</strong>
+    <!-- Product Cards -->
+    <div class="row">
+        @foreach($products as $product)
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h3>{{ $product->name }}</h3>
+                        <div>
+                            <a href="{{ route('products_edit', $product->id) }}" class="btn btn-success">Edit</a>
+                            <a href="{{ route('products_delete', $product->id) }}" class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            @if($product->photo)
+                                @if(Str::startsWith($product->photo, 'http'))
+                                    <img src="{{ $product->photo }}" alt="{{ $product->name }}" class="img-fluid">
+                                @else
+                                    <img src="{{ asset('storage/products/' . $product->photo) }}" alt="{{ $product->name }}" class="img-fluid">
+                                @endif
+                            @else
+                                <img src="{{ asset('images/default.png') }}" alt="No Image" class="img-fluid">
+                            @endif
+                        </div>
 
-            @if($product->photo)
-                <div>
-                    <img src="{{ asset('storage/' . $product->photo) }}" alt="{{ $product->name }}" width="100">
+                        <div class="col-md-8">
+                            <table class="table">
+                                <tr><th>Name</th><td>{{ $product->name }}</td></tr>
+                                <tr><th>Model</th><td>{{ $product->model }}</td></tr>
+                                <tr><th>Code</th><td>{{ $product->code }}</td></tr>
+                                <tr><th>Price</th><td>{{ $product->price }} LE</td></tr>
+                                <tr><th>Description</th><td>{{ $product->description }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            @endif
-
-            <div class="mt-2">
-                <a href="{{ route('products_edit', $product->id) }}" class="btn btn-warning">Edit</a>
-                <a href="{{ route('products_delete', $product->id) }}" class="btn btn-danger">Delete</a>
             </div>
         </div>
+        @endforeach
     </div>
-@endforeach
-
 </div>
 @endsection
