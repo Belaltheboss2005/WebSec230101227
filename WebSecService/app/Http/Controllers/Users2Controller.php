@@ -35,6 +35,12 @@ class Users2Controller extends Controller
         return view('users2', compact('users', 'sortField', 'sortDirection'));
     }
 
+    public function create()
+{
+    return view('users2.create'); // This will load resources/views/users2/create.blade.php
+}
+
+
 
 
     public function store(Request $request)
@@ -68,7 +74,7 @@ class Users2Controller extends Controller
     public function edit($id)
     {
         $user = Users2::findOrFail($id);
-        return view('edit', compact('user'));
+        return view('users2.edit', compact('user'));
     }
 
     public function update(Request $request, $id)

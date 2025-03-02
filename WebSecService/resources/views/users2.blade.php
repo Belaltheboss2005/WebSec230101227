@@ -3,6 +3,10 @@
 @section('content')
 <div class="container">
     <h2>Users List</h2>
+    <a href="{{ route('users2.create') }}" class="btn btn-success mb-3">Add User</a>
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
     <!-- Search Form -->
     <form method="GET" action="{{ route('users2.index') }}" class="mb-3">
