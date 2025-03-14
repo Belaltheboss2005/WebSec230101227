@@ -7,7 +7,6 @@ use App\Models\Users2;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
-
 class Users2Controller extends Controller
 {
     public function index(Request $request)
@@ -25,7 +24,7 @@ class Users2Controller extends Controller
         $sortDirection = $request->get('sort_order', 'asc'); // Default: ascending
 
         // Prevent sorting by unauthorized fields
-        $allowedSortFields = ['id', 'name', 'email', 'created_at'];
+        $allowedSortFields = ['id', 'name', 'email', 'created_at', 'privilege'];
         if (!in_array($sortField, $allowedSortFields)) {
             $sortField = 'id';
         }
@@ -36,12 +35,9 @@ class Users2Controller extends Controller
     }
 
     public function create()
-{
-    return view('users2.create'); // This will load resources/views/users2/create.blade.php
-}
-
-
-
+    {
+        return view('users2.create'); // This will load resources/views/users2/create.blade.php
+    }
 
     public function store(Request $request)
     {
@@ -51,6 +47,7 @@ class Users2Controller extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users2,email',
             'password' => 'required|min:6',
+            'privilege' => 'required|integer|between:-1,1',
         ]);
 
         Log::info('Validated Data:', $validatedData);
@@ -60,6 +57,7 @@ class Users2Controller extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
+                'privilege' => $request->privilege,
             ]);
 
             Log::info('User Created:', ['id' => $user->id]);
@@ -85,12 +83,14 @@ class Users2Controller extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users2,email,' . $id,
             'password' => 'nullable|min:6',
+            'privilege' => 'required|integer|between:-1,1',
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password ? Hash::make($request->password) : $user->password,
+            'privilege' => $request->privilege,
         ]);
 
         return redirect()->route('users2.index')->with('success', 'User updated successfully');

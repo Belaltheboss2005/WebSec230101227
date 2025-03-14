@@ -14,6 +14,7 @@ class Users2 extends Model
         'name',
         'email',
         'password',
+        'privilege',
         'created_at',
         'updated_at'
     ]; // Allowing mass assignment

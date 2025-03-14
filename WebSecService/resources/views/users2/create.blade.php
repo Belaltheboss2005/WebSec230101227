@@ -17,6 +17,10 @@
             <label>Password:</label>
             <input type="password" name="password" class="form-control" required>
         </div>
+        <div class="mb-3">
+            <label>Privilege:</label>
+            <input type="number" name="privilege" class="form-control" min="-1" max="1" required>
+        </div>
         <button type="submit" class="btn btn-success">Save</button>
         @if ($errors->any())
             <div class="alert alert-danger">
