@@ -91,12 +91,39 @@ Route::middleware(['auth'])->group(function () {
         return view('products2', compact('products'));
     });
 
-    Route::prefix('users2')->group(function () {
-        Route::get('/', [Users2Controller::class, 'index'])->name('users2.index');
-        Route::get('/create', [Users2Controller::class, 'create'])->name('users2.create');
-        Route::post('/store', [Users2Controller::class, 'store'])->name('users2.store');
-        Route::get('/edit/{id}', [Users2Controller::class, 'edit'])->name('users2.edit');
-        Route::post('/update/{id}', [Users2Controller::class, 'update'])->name('users2.update');
-        Route::get('/delete/{id}', [Users2Controller::class, 'destroy'])->name('users2.delete');
-    });
+    // Route::get('/', [Users2Controller::class, 'index'])->name('users2.index');
+
+// Users2 Routes (Only for privilege level 1)
+Route::prefix('users2')->group(function () {
+    Route::get('/', function () {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->index(request()); // Pass the request object
+    })->name('users2.index');
+
+
+    Route::get('/create', function () {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->create();
+    })->name('users2.create');
+
+    Route::post('/store', function () {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->store(request());
+    })->name('users2.store');
+
+    Route::get('/edit/{id}', function ($id) {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->edit($id);
+    })->name('users2.edit');
+
+    Route::post('/update/{id}', function ($id) {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->update(request(), $id);
+    })->name('users2.update');
+
+    Route::get('/delete/{id}', function ($id) {
+        if (auth()->user()->privilege != 1) abort(403);
+        return app(Users2Controller::class)->destroy($id);
+    })->name('users2.delete');
+});
 });

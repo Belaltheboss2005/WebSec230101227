@@ -19,7 +19,7 @@
         </div>
         <div class="mb-3">
             <label>New Privilege (optional):</label>
-            <input type="number" name="privilege" class="form-control" min="-1" max="1" required>>
+            <input type="number" name="privilege" class="form-control" min="-1" max="1" required>
         </div>
         <button type="submit" class="btn btn-primary">Update</button>
     </form>

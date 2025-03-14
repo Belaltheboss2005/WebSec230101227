@@ -32,6 +32,11 @@
         </div>
 
         <div class="mb-2">
+            <label class="form-label">Photo:</label>
+            <input type="text" class="form-control" name="photo" value="{{ $product->photo }}" >
+        </div>
+
+        <div class="mb-2">
             <label class="form-label">Description:</label>
             <textarea class="form-control" name="description" required>{{ $product->description }}</textarea>
         </div>

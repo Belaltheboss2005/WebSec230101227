@@ -34,21 +34,24 @@ class UsersController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(8)->letters()->numbers()->mixedCase()->symbols()
+                Password::min(6)->letters()->numbers()->mixedCase()->symbols()
             ],
         ]);
 
-        // Create new user
+        // Create new user with privilege set to 0
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
+        $user->privilege = 0; // Force privilege to 0
+
         $user->save();
 
         Auth::login($user);
 
         return redirect("/")->with('success', 'Registration successful.');
     }
+
 
     /**
      * Show the login form
