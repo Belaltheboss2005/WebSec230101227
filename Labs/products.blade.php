@@ -3,8 +3,15 @@
 @section('title', 'Products')
 
 @section('content')
-<div class="container">
-    <h3>Product Catalog</h3>
+<div class="row">
+    <div class="col col-10">
+        <h1>Products</h1>
+    </div>
+        <div class="col col-2">
+            <a href="{{route('products_edit')}}" class="btn btn-success form-control">Add Product</a>
+        </div>
+    </div>
+
     <div class="row">
         @foreach($products as $product)
         <div class="card mt-2">
@@ -25,7 +32,7 @@
                 </div>
             </div>
         </div>
-    @endforeach
+        @endforeach
     </div>
 </div>
 @endsection

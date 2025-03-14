@@ -4,7 +4,16 @@
 
 @section('content')
 <div class="container">
-    <h1 class="mb-4">Product List</h1>
+    <div class="row">
+        <div class="col col-10">
+            <h1>Products List</h1>
+        </div>
+        @if(auth()->user()->privilege == 1)
+            <div class="col col-2">
+                <a href="{{route('products_edit')}}" class="btn btn-success form-control">Add Product</a>
+            </div>
+        @endif
+    </div>
 
     <!-- Search Form -->
     <form method="GET" action="{{ route('products_list') }}" class="mb-4">
@@ -34,7 +43,6 @@
             <div class="col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Search</button>
                 <a href="{{ route('products_list') }}" class="btn btn-danger">Reset</a>
-                {{-- Reset redirects to remove filters --}}
             </div>
         </div>
     </form>
@@ -47,10 +55,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <h3>{{ $product->name }}</h3>
-                        <div>
-                            <a href="{{ route('products_edit', $product->id) }}" class="btn btn-success">Edit</a>
-                            <a href="{{ route('products_delete', $product->id) }}" class="btn btn-danger">Delete</a>
-                        </div>
+                        @if(auth()->user()->privilege == 1)
+                            <div>
+                                <a href="{{ route('products_edit', $product->id) }}" class="btn btn-success">Edit</a>
+                                <a href="{{ route('products_delete', $product->id) }}" class="btn btn-danger">Delete</a>
+                            </div>
+                        @endif
                     </div>
                     <div class="row">
                         <div class="col-md-4">

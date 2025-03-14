@@ -16,10 +16,16 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url('/products') }}">Products</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url('/users2') }}">Users 2</a>
-            </li>
+
+            @auth
+                @if(auth()->user()->privilege != 0)
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/users2') }}">Users 2</a>
+                    </li>
+                @endif
+            @endauth
         </ul>
+
         <ul class="navbar-nav">
             @auth
                 <li class="nav-item"><a class="nav-link" href="{{ route('profile') }}">{{ auth()->user()->name }}</a></li>

@@ -91,12 +91,48 @@ Route::middleware(['auth'])->group(function () {
         return view('products2', compact('products'));
     });
 
+    // Restrict access to users2 for users with privilege = 0
     Route::prefix('users2')->group(function () {
-        Route::get('/', [Users2Controller::class, 'index'])->name('users2.index');
-        Route::get('/create', [Users2Controller::class, 'create'])->name('users2.create');
-        Route::post('/store', [Users2Controller::class, 'store'])->name('users2.store');
-        Route::get('/edit/{id}', [Users2Controller::class, 'edit'])->name('users2.edit');
-        Route::post('/update/{id}', [Users2Controller::class, 'update'])->name('users2.update');
-        Route::get('/delete/{id}', [Users2Controller::class, 'destroy'])->name('users2.delete');
+        Route::get('/', function () {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->index();
+        })->name('users2.index');
+
+        Route::get('/create', function () {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->create();
+        })->name('users2.create');
+
+        Route::post('/store', function (Request $request) {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->store($request);
+        })->name('users2.store');
+
+        Route::get('/edit/{id}', function ($id) {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->edit($id);
+        })->name('users2.edit');
+
+        Route::post('/update/{id}', function (Request $request, $id) {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->update($request, $id);
+        })->name('users2.update');
+
+        Route::get('/delete/{id}', function ($id) {
+            if (auth()->user()->privilege == 0) {
+                abort(403, 'Unauthorized action.');
+            }
+            return app(Users2Controller::class)->destroy($id);
+        })->name('users2.delete');
     });
 });
