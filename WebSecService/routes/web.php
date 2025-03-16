@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Users2Controller;
 use App\Http\Controllers\Web\UsersController;
+use App\Http\Controllers\StudentController;
 
 // Public Routes (Accessible Without Authentication)
 Route::get('/', function () {
@@ -93,37 +94,68 @@ Route::middleware(['auth'])->group(function () {
 
     // Route::get('/', [Users2Controller::class, 'index'])->name('users2.index');
 
-// Users2 Routes (Only for privilege level 1)
-Route::prefix('users2')->group(function () {
-    Route::get('/', function () {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->index(request()); // Pass the request object
-    })->name('users2.index');
+    // Users2 Routes (Only for privilege level 1)
+    Route::prefix('users2')->group(function () {
+        Route::get('/', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->index(request()); // Pass the request object
+        })->name('users2.index');
 
 
-    Route::get('/create', function () {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->create();
-    })->name('users2.create');
+        Route::get('/create', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->create();
+        })->name('users2.create');
 
-    Route::post('/store', function () {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->store(request());
-    })->name('users2.store');
+        Route::post('/store', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->store(request());
+        })->name('users2.store');
 
-    Route::get('/edit/{id}', function ($id) {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->edit($id);
-    })->name('users2.edit');
+        Route::get('/edit/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->edit($id);
+        })->name('users2.edit');
 
-    Route::post('/update/{id}', function ($id) {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->update(request(), $id);
-    })->name('users2.update');
+        Route::post('/update/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->update(request(), $id);
+        })->name('users2.update');
 
-    Route::get('/delete/{id}', function ($id) {
-        if (auth()->user()->privilege != 1) abort(403);
-        return app(Users2Controller::class)->destroy($id);
-    })->name('users2.delete');
-});
+        Route::get('/delete/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(Users2Controller::class)->destroy($id);
+        })->name('users2.delete');
+    });
+    Route::prefix('student')->group(function () {
+        Route::get('/', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->index(request()); // Pass the request object
+        })->name('student.index');
+
+        Route::get('/create', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->create();
+        })->name('student.create');
+
+        Route::post('/store', function () {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->store(request());
+        })->name('student.store');
+
+        Route::get('/edit/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->edit($id);
+        })->name('student.edit');
+
+        Route::post('/update/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->update(request(), $id);
+        })->name('student.update');
+
+        Route::get('/delete/{id}', function ($id) {
+            if (auth()->user()->privilege != 1) abort(403);
+            return app(StudentController::class)->destroy($id);
+        })->name('student.delete');
+    });
 });

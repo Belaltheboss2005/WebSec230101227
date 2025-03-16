@@ -24,6 +24,15 @@
                     </li>
                 @endif
             @endauth
+
+            @auth
+                @if(auth()->user()->privilege != 0)
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/student') }}">Student View</a>
+                    </li>
+                @endif
+            @endauth
+
         </ul>
 
         <ul class="navbar-nav">
