@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <h2>Edit User</h2>
-    <form action="{{ route('users2.update', $user->id) }}" method="POST">
+    <form action="{{ route('users.update', $user->id) }}" method="POST">
         @csrf
         <div class="mb-3">
             <label>Name:</label>

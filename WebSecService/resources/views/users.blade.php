@@ -3,13 +3,13 @@
 @section('content')
 <div class="container">
     <h2>Users List</h2>
-    <a href="{{ route('users2.create') }}" class="btn btn-success mb-3">Add User</a>
+    <a href="{{ route('users.create') }}" class="btn btn-success mb-3">Add User</a>
     @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     <!-- Search Form -->
-    <form method="GET" action="{{ route('users2.index') }}" class="mb-3">
+    <form method="GET" action="{{ route('users.index') }}" class="mb-3">
         <div class="row">
             <div class="col-md-4">
                 <input type="text" name="search" class="form-control"
@@ -31,7 +31,7 @@
             </div>
             <div class="col-md-4">
                 <button type="submit" class="btn btn-primary">Filter</button>
-                <a href="{{ route('users2.index') }}" class="btn btn-secondary">Reset</a>
+                <a href="{{ route('users.index') }}" class="btn btn-secondary">Reset</a>
             </div>
         </div>
     </form>
@@ -55,8 +55,8 @@
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->privilege }}</td>
                     <td>
-                        <a href="{{ route('users2.edit', $user->id) }}" class="btn btn-primary">Edit</a>
-                        <a href="{{ route('users2.delete', $user->id) }}" class="btn btn-danger"
+                        <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary">Edit</a>
+                        <a href="{{ route('users.delete', $user->id) }}" class="btn btn-danger"
                            onclick="return confirm('Are you sure?')">Delete</a>
                     </td>
                 </tr>

@@ -3,9 +3,9 @@
 use App\Http\Controllers\Web\ProductsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Users2Controller;
-use App\Http\Controllers\Web\UsersController;
+use App\Http\Controllers\UsersController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ForgetPasswordController;
 
 // Public Routes (Accessible Without Authentication)
 Route::get('/', function () {
@@ -16,6 +16,27 @@ Route::get('/login', [UsersController::class, 'login'])->name('login');
 Route::post('/login', [UsersController::class, 'doLogin'])->name('do_login');
 Route::get('/register', [UsersController::class, 'register'])->name('register');
 Route::post('/register', [UsersController::class, 'doRegister'])->name('do_register');
+
+
+// Route::get('/forgot-password', [ForgetPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+// Route::post('/forgot-password', [ForgetPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+
+// Add this route to make ForgetPasswordEmail.blade.php accessible without authentication
+Route::get('/forget-password-email', function () {
+    return view('users.forgetPasswordEmail');
+})->name('forgetPasswordEmail');
+
+// Password Reset Routes
+Route::get('/forgot-password', [ForgetPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgetPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [ForgetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ForgetPasswordController::class, 'reset'])->name('password.update');
+
+
+// Route::get('/forget-password-email', function () {
+//     return view('users.forgetPasswordEmail');
+// })->name('forgetPasswordEmail');
 
 // Protected Routes (Require Authentication)
 Route::middleware(['auth'])->group(function () {
@@ -68,65 +89,65 @@ Route::middleware(['auth'])->group(function () {
         return view('calculator');
     });
 
-    Route::get('/products2', function () {
-        $products = [
-            [
-                'name' => 'Laptop',
-                'image' => 'https://via.placeholder.com/150',
-                'price' => 15000,
-                'description' => 'A high-performance laptop for all your needs.'
-            ],
-            [
-                'name' => 'Smartphone',
-                'image' => 'https://via.placeholder.com/150',
-                'price' => 8000,
-                'description' => 'A sleek smartphone with the latest features.'
-            ],
-            [
-                'name' => 'Headphones',
-                'image' => 'https://via.placeholder.com/150',
-                'price' => 2000,
-                'description' => 'Noise-canceling headphones for a great experience.'
-            ]
-        ];
-        return view('products2', compact('products'));
-    });
+    // Route::get('/products2', function () {
+    //     $products = [
+    //         [
+    //             'name' => 'Laptop',
+    //             'image' => 'https://via.placeholder.com/150',
+    //             'price' => 15000,
+    //             'description' => 'A high-performance laptop for all your needs.'
+    //         ],
+    //         [
+    //             'name' => 'Smartphone',
+    //             'image' => 'https://via.placeholder.com/150',
+    //             'price' => 8000,
+    //             'description' => 'A sleek smartphone with the latest features.'
+    //         ],
+    //         [
+    //             'name' => 'Headphones',
+    //             'image' => 'https://via.placeholder.com/150',
+    //             'price' => 2000,
+    //             'description' => 'Noise-canceling headphones for a great experience.'
+    //         ]
+    //     ];
+    //     return view('products2', compact('products'));
+    // });
 
     // Route::get('/', [Users2Controller::class, 'index'])->name('users2.index');
 
     // Users2 Routes (Only for privilege level 1)
-    Route::prefix('users2')->group(function () {
+    Route::prefix('users')->group(function () { // Changed 'users2' to 'users'
         Route::get('/', function () {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->index(request()); // Pass the request object
-        })->name('users2.index');
-
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->index(request()); // Pass the request object
+        })->name('users.index');
 
         Route::get('/create', function () {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->create();
-        })->name('users2.create');
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->create();
+        })->name('users.create');
 
         Route::post('/store', function () {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->store(request());
-        })->name('users2.store');
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->store(request());
+        })->name('users.store');
 
         Route::get('/edit/{id}', function ($id) {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->edit($id);
-        })->name('users2.edit');
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->edit($id);
+        })->name('users.edit');
 
         Route::post('/update/{id}', function ($id) {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->update(request(), $id);
-        })->name('users2.update');
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->update(request(), $id);
+        })->name('users.update');
 
         Route::get('/delete/{id}', function ($id) {
-            if (auth()->user()->privilege != 1) abort(403);
-            return app(Users2Controller::class)->destroy($id);
-        })->name('users2.delete');
+            if (optional(auth()->user())->privilege != 1) abort(403);
+            return app(UsersController::class)->destroy($id);
+        })->name('users.delete');
     });
+
     Route::prefix('student')->group(function () {
         Route::get('/', function () {
             if (auth()->user()->privilege != 1) abort(403);
@@ -158,4 +179,10 @@ Route::middleware(['auth'])->group(function () {
             return app(StudentController::class)->destroy($id);
         })->name('student.delete');
     });
+
+
+    // Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    // Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+
 });

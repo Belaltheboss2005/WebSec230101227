@@ -1,5 +1,3 @@
-
-
 @extends('layouts.master')
 
 @section('title', 'Login')
@@ -41,5 +39,9 @@
 
         <button type="submit" class="btn btn-primary">Login</button>
     </form>
+
+    <div class="mt-3">
+        <a href="{{ route('password.request') }}" class="btn btn-link">Forget Password</a>
+    </div>
 </div>
 @endsection

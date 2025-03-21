@@ -20,7 +20,7 @@
             @auth
                 @if(auth()->user()->privilege != 0)
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/users2') }}">Users 2</a>
+                        <a class="nav-link" href="{{ url('/users') }}">Users View</a>
                     </li>
                 @endif
             @endauth
