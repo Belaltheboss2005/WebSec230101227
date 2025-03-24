@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\RolesController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ForgetPasswordController;
@@ -55,6 +56,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('products/edit/{product?}', [ProductsController::class, 'edit'])->name('products_edit');
     Route::post('products/save/{product?}', [ProductsController::class, 'save'])->name('products_save');
     Route::get('products/delete/{product}', [ProductsController::class, 'delete'])->name('products_delete');
+
+
+    Route::get('insufficient-credit', function () {
+        return view('products.insufficient_credit');
+    })->name('insufficient_credit');
+    Route::post('cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
+    Route::get('cart', [CartController::class, 'show'])->name('cart.show');
+
+
 
     Route::get('/calculator', function () {
         return view('calculator');

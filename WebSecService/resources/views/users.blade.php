@@ -44,6 +44,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Credit</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -53,6 +54,7 @@
                     <td>{{ $user->id }}</td>
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
+                    <td>{{ $user->credit }}</td>
                     <td>{{ $user->roles->pluck('name')->first() }}</td> <!-- Display the user's role -->
                     <td>
                         <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary">Edit</a>

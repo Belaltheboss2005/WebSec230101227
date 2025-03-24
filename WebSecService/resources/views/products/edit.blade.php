@@ -31,9 +31,16 @@
             </div>
         </div>
 
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <label class="form-label">Stock:</label>
+                <input type="number" class="form-control" name="stock" value="{{ $product->stock }}" required>
+            </div>
+        </div>
+
         <div class="mb-2">
             <label class="form-label">Photo:</label>
-            <input type="text" class="form-control" name="photo" value="{{ $product->photo }}" >
+            <input type="text" class="form-control" name="photo" value="{{ $product->photo }}">
         </div>
 
         <div class="mb-2">

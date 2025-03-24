@@ -12,12 +12,14 @@ class User extends Authenticatable
     protected $table = 'users'; // Explicitly defining the table
 
     protected $fillable = [
-        'name',
-        'email',
-        'email_verified_at',
-        'password',
-        'remember_token',
-        'created_at',
-        'updated_at'
-    ]; // Allowing mass assignment
+        'name', 'email', 'password', 'credit'
+    ];
+
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 }

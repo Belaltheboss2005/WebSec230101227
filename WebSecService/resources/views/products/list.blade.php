@@ -7,11 +7,28 @@
     <div class="row">
         <div class="col col-10">
             <h1>Products List</h1>
-            @can('products_edit')
+            <div class="d-flex justify-content-between mb-3">
+                @can('products_edit')
+                    <div class="col col-2">
+                        <a href="{{ route('products_edit') }}" class="btn btn-success form-control">Add Product</a>
+                    </div>
+                @endcan
                 <div class="col col-2">
-                    <a href="{{ route('products_edit') }}" class="btn btn-success form-control">Add Product</a>
+                    <a href="{{ route('cart.show') }}" class="btn btn-primary form-control">Show Cart</a>
                 </div>
-            @endcan
+            </div>
+
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <!-- Search Form -->
             <form method="GET" action="{{ route('products_list') }}" class="mb-4">
@@ -60,6 +77,10 @@
                                     @can('products_delete')
                                         <a href="{{ route('products_delete', $product->id) }}" class="btn btn-danger">Delete</a>
                                     @endcan
+                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                                    </form>
                                 </div>
                             </div>
                             <div class="row">
@@ -82,6 +103,7 @@
                                         <tr><th>Code</th><td>{{ $product->code }}</td></tr>
                                         <tr><th>Price</th><td>{{ $product->price }} LE</td></tr>
                                         <tr><th>Description</th><td>{{ $product->description }}</td></tr>
+                                        <tr><th>Stock</th><td>{{ $product->stock }}</td></tr> <!-- Display the stock quantity -->
                                     </table>
                                 </div>
                             </div>

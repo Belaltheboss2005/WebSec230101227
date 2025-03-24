@@ -18,6 +18,12 @@
             <label>New Password (optional):</label>
             <input type="password" name="password" class="form-control">
         </div>
+        @if(auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Admin'))
+            <div class="mb-3">
+                <label>Credits:</label>
+                <input type="number" name="credit" class="form-control" value="{{ $user->credit }}" required>
+            </div>
+        @endif
         @if(!auth()->user()->hasRole('Employee'))
             <div class="mb-3">
                 <label>Role:</label>

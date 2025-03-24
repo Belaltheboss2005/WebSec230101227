@@ -25,6 +25,7 @@
     <div class="card p-3">
         <p><strong>Name:</strong> {{ $user->name }}</p>
         <p><strong>Email:</strong> {{ $user->email }}</p>
+        <p><strong>Credit:</strong> {{ $user->credit }}</p> <!-- Display the user's credit -->
         <p><strong>Role:</strong> {{ $user->roles->pluck('name')->implode(', ') }}</p>
         <p><strong>Permissions:</strong> {{ $user->permissions->pluck('display_name')->implode(', ') }}</p>
     </div>

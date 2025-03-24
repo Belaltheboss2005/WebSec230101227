@@ -3,21 +3,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model {
+class Cart extends Model {
     // The table associated with the model
-    protected $table = 'products';
+    protected $table = 'cart';
 
     // Enable automatic timestamps
     public $timestamps = true;
 
     // The attributes that are mass assignable
     protected $fillable = [
-        'name', 'model', 'code', 'price', 'description', 'stock', 'photo'
+        'user_id', 'product_id', 'quantity'
     ];
 
-    // Define the relationship with the Cart model
-    public function carts()
+    // Define the relationship with the Product model
+    public function product()
     {
-        return $this->hasMany(Cart::class);
+        return $this->belongsTo(Product::class);
     }
 }
