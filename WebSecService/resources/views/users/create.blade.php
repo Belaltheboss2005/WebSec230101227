@@ -18,20 +18,27 @@
             <input type="password" name="password" class="form-control" required>
         </div>
         <div class="mb-3">
-            <label>Privilege:</label>
-            <input type="number" name="privilege" class="form-control" min="-1" max="1" required>
+            <label>Role:</label>
+            <select name="role" class="form-select" required>
+                @foreach($roles as $role)
+                    <option value="{{ $role->name }}">
+                        {{ ucfirst($role->name) }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-        <button type="submit" class="btn btn-success">Save</button>
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+        <div class="mb-3">
+            <label>Permissions:</label>
+            <div class="form-check">
+                @foreach($permissions as $permission)
+                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" class="form-check-input" id="permission-{{ $permission->id }}">
+                    <label class="form-check-label" for="permission-{{ $permission->id }}">
+                        {{ ucfirst($permission->display_name) }}
+                    </label><br>
+                @endforeach
             </div>
-        @endif
-
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
     </form>
 </div>
 @endsection

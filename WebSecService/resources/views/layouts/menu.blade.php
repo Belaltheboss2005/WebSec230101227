@@ -16,23 +16,24 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url('/products') }}">Products</a>
             </li>
-
             @auth
-                @if(auth()->user()->privilege != 0)
+                @if(auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('roles.index') }}">Manage Roles</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('permissions.index') }}">Manage Permissions</a>
+                    </li>
+                @endif
+                @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Employee'))
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/users') }}">Users View</a>
                     </li>
-                @endif
-            @endauth
-
-            @auth
-                @if(auth()->user()->privilege != 0)
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/student') }}">Student View</a>
                     </li>
                 @endif
             @endauth
-
         </ul>
 
         <ul class="navbar-nav">

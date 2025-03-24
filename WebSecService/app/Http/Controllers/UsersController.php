@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User; 
+use Artisan;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UsersController extends Controller
 {
@@ -30,9 +33,16 @@ class UsersController extends Controller
         $sortDirection = $request->get('sort_order', 'asc'); // Default: ascending
 
         // Prevent sorting by unauthorized fields
-        $allowedSortFields = ['id', 'name', 'email', 'created_at', 'privilege'];
+        $allowedSortFields = ['id', 'name', 'email', 'created_at'];
         if (!in_array($sortField, $allowedSortFields)) {
             $sortField = 'id';
+        }
+
+        // Restrict Employee role to only see users with User role
+        if (auth()->user()->hasRole('Employee')) {
+            $query->whereHas('roles', function ($q) {
+                $q->where('name', 'User');
+            });
         }
 
         $users = $query->orderBy($sortField, $sortDirection)->get();
@@ -42,9 +52,12 @@ class UsersController extends Controller
 
     public function create()
     {
-        return view('users.create');
-    }
 
+        $roles = Role::all();
+        $permissions = Permission::all();
+        return view('users.create', compact('roles', 'permissions'));
+
+    }
     public function store(Request $request)
     {
         Log::info('Store method triggered');
@@ -53,7 +66,9 @@ class UsersController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'privilege' => 'required|integer|between:-1,1',
+            'role' => 'required|string|exists:roles,name',
+            'permissions' => 'array',
+            'permissions.*' => 'integer|exists:permissions,id',
         ]);
 
         Log::info('Validated Data:', $validatedData);
@@ -63,10 +78,19 @@ class UsersController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
-                'privilege' => $request->privilege,
             ]);
 
             Log::info('User Created:', ['id' => $user->id]);
+
+            // Assign role to the user
+            $user->assignRole($request->role);
+            Log::info('Role assigned:', ['role' => $request->role]);
+
+            // Assign permissions to the user
+            if ($request->has('permissions')) {
+                $user->syncPermissions($request->permissions);
+                Log::info('Permissions assigned:', ['permissions' => $request->permissions]);
+            }
 
             return redirect()->route('users.index')->with('success', 'User added successfully');
         } catch (\Exception $e) {
@@ -75,32 +99,82 @@ class UsersController extends Controller
         }
     }
 
+
     public function edit($id)
-    {
-        $user = User::findOrFail($id);
-        return view('users.edit', compact('user'));
+{
+    Log::info('Edit method triggered for user:', ['id' => $id]);
+
+    $user = User::findOrFail($id);
+
+    // Restrict Employee role to only edit users with User role
+    if (auth()->user()->hasRole('Employee') && !$user->hasRole('User')) {
+        return redirect()->route('users.index')->with('error', 'You do not have permission to edit this user.');
     }
 
-    public function update(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
+    $roles = Role::all(); // Fetch all roles
+    $permissions = Permission::all(); // Fetch all permissions
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
-            'privilege' => 'required|integer|between:-1,1',
-        ]);
+    Log::info('User data fetched for edit:', ['user' => $user, 'roles' => $roles, 'permissions' => $permissions]);
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password ? Hash::make($request->password) : $user->password,
-            'privilege' => $request->privilege,
-        ]);
+    return view('users.edit', compact('user', 'roles', 'permissions'));
+}
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully');
+public function update(Request $request, $id)
+{
+    Log::info('Update method triggered for user:', ['id' => $id]);
+
+    $user = User::findOrFail($id);
+
+    // Restrict Employee role to only update users with User role
+    if (auth()->user()->hasRole('Employee') && !$user->hasRole('User')) {
+        return redirect()->route('users.index')->with('error', 'You do not have permission to update this user.');
     }
+
+    Log::info('User found:', ['user' => $user]);
+
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'password' => 'nullable|min:6',
+    ]);
+
+    Log::info('Validated Data:', $validatedData);
+
+    $user->update([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => $request->password ? Hash::make($request->password) : $user->password,
+    ]);
+
+    Log::info('User updated:', ['user' => $user]);
+
+    if (!auth()->user()->hasRole('Employee')) {
+        // Convert permission IDs to permission names
+        $permissions = Permission::whereIn('id', $request->permissions ?? [])->pluck('name')->toArray();
+        Log::info('Permissions to sync:', ['permissions' => $permissions]);
+
+        // Sync roles and permissions
+        $user->syncRoles([$request->role]);
+        Log::info('Role synced:', ['role' => $request->role]);
+
+        $user->syncPermissions($permissions);
+        Log::info('Permissions synced:', ['permissions' => $permissions]);
+
+        // Handle unchecked permissions
+        $currentPermissions = $user->permissions->pluck('id')->toArray();
+        $newPermissions = $request->permissions ?? [];
+        $permissionsToDelete = array_diff($currentPermissions, $newPermissions);
+
+        if (!empty($permissionsToDelete)) {
+            $user->permissions()->detach($permissionsToDelete);
+            Log::info('Permissions detached:', ['permissions_to_delete' => $permissionsToDelete]);
+        }
+    }
+
+    Log::info('User updated successfully:', ['id' => $user->id]);
+
+    return redirect()->route('users.index')->with('success', 'User updated successfully');
+}
 
     public function destroy($id)
     {
@@ -114,34 +188,35 @@ class UsersController extends Controller
     }
 
     public function doRegister(Request $request)
-    {
-        Log::info('Store method triggered');
+{
+    Log::info('Store method triggered');
 
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:6',
+    ]);
+
+    Log::info('Validated Data:', $validatedData);
+
+    try {
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
         ]);
 
-        Log::info('Validated Data:', $validatedData);
+        // Assign the "user" role to the newly registered user
+        $user->assignRole('user');
 
-        try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
-                'privilege' => 0,
-            ]);
+        Log::info('User Created and role assigned:', ['id' => $user->id]);
 
-            Log::info('User Created:', ['id' => $user->id]);
-
-            return redirect()->route('login')->with('success', 'Registration successful.');
-        } catch (\Exception $e) {
-            Log::error('Error Storing User: ' . $e->getMessage());
-            return back()->with('error', 'Failed to store user');
-        }
+        return redirect()->route('login')->with('success', 'Registration successful.');
+    } catch (\Exception $e) {
+        Log::error('Error Storing User: ' . $e->getMessage());
+        return back()->with('error', 'Failed to store user');
     }
-
+}
     public function login()
     {
         return view('users.login');
@@ -178,22 +253,28 @@ class UsersController extends Controller
         return view('users.profile', ['user' => Auth::user()]);
     }
 
-    public function changePassword(Request $request)
+    public function editProfile(Request $request)
     {
-        Log::info('Change password method triggered for user:', ['id' => Auth::id()]);
-        $this->validate($request, [
-            'current_password' => 'required',
-            'new_password' => ['required', 'confirmed', Password::min(6)->letters()->numbers()->mixedCase()->symbols()],
+        $user = auth()->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'current_password' => 'required_with:new_password|string',
+            'new_password' => 'nullable|string|min:6|confirmed',
         ]);
 
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
-            Log::warning('Current password is incorrect for user:', ['id' => Auth::id()]);
-            return back()->withErrors('Current password is incorrect.');
+        $user->name = $request->name;
+
+        if ($request->filled('current_password') && $request->filled('new_password')) {
+            if (Hash::check($request->current_password, $user->password)) {
+                $user->password = bcrypt($request->new_password);
+            } else {
+                return back()->withErrors(['current_password' => 'Current password is incorrect']);
+            }
         }
 
-        Auth::user()->update(['password' => Hash::make($request->new_password)]);
-        Log::info('Password updated successfully for user:', ['id' => Auth::id()]);
+        $user->save();
 
-        return back()->with('success', 'Password updated successfully.');
+        return redirect()->route('profile')->with('success', 'Profile updated successfully');
     }
 }

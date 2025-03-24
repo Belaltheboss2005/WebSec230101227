@@ -43,7 +43,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Privilege</th>
+                <th>Role</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -53,7 +53,7 @@
                     <td>{{ $user->id }}</td>
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
-                    <td>{{ $user->privilege }}</td>
+                    <td>{{ $user->roles->pluck('name')->first() }}</td> <!-- Display the user's role -->
                     <td>
                         <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary">Edit</a>
                         <a href="{{ route('users.delete', $user->id) }}" class="btn btn-danger"

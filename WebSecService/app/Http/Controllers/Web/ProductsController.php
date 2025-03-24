@@ -32,20 +32,12 @@ class ProductsController extends Controller
     }
 
     public function edit(Request $request, Product $product = null) {
-        // Restrict edit access to admin (privilege = 1)
-        if (auth()->user()->privilege != 1) {
-            abort(403, 'Unauthorized action.');
-        }
 
         $product = $product ?? new Product(); // Create a new product if null
         return view("products.edit", compact('product'));
     }
 
     public function save(Request $request, Product $product = null) {
-        // Restrict save action to admin (privilege = 1)
-        if (auth()->user()->privilege != 1) {
-            abort(403, 'Unauthorized action.');
-        }
 
         $product = $product ?? new Product();
         $product->fill($request->all());
@@ -55,9 +47,6 @@ class ProductsController extends Controller
 
     public function delete(Product $product) {
         // Restrict delete action to admin (privilege = 1)
-        if (auth()->user()->privilege != 1) {
-            abort(403, 'Unauthorized action.');
-        }
 
         $product->delete();
         return redirect()->route('products_list');
