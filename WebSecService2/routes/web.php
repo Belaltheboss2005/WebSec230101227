@@ -24,7 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/add', [UsersController::class, 'storeUser'])->name('users_store');
 
     // Product routes
-    
+
     Route::get('products', [ProductsController::class, 'list'])->name('products_list');
     Route::get('products/edit/{product?}', [ProductsController::class, 'edit'])->name('products_edit');
     Route::post('products/save/{product?}', [ProductsController::class, 'save'])->name('products_save');

@@ -20,6 +20,9 @@ class UsersController extends Controller {
     public function list()
     {
         $user = auth()->user();
+        if (!auth()->user()->hasPermissionTo('show_users')) {
+            abort(401); // Unauthorized
+        }
 
         if ($user->hasRole('Employee')) {
             // Employees can only see customers
@@ -77,6 +80,9 @@ class UsersController extends Controller {
 
     public function storeUser(Request $request)
     {
+        
+        if(!auth()->user()->hasPermissionTo('add_users')) abort(401);
+
         Log::info('storeUser method called', ['request' => $request->all()]);
 
         if (!auth()->user()->hasPermissionTo('add_users')) {
@@ -187,6 +193,9 @@ class UsersController extends Controller {
     }
 
     public function save(Request $request, User $user) {
+
+        if(!auth()->user()->hasPermissionTo('edit_users')) abort(401);
+
         $this->validate($request, [
             'name' => ['required', 'string', 'max:255'],
             'credit' => ['required', 'numeric', 'min:0'], // Validation for credit
@@ -201,10 +210,18 @@ class UsersController extends Controller {
         $user->credit = $request->credit; // Save the credit value
         $user->save();
 
-        if (auth()->user()->hasPermissionTo('add_users')) {
-            $user->syncRoles($request->roles);
-            $user->syncPermissions($request->permissions);
+        // Only sync roles and permissions if the user has the appropriate permission
+        if (auth()->user()->hasPermissionTo('admin_users')) {
+            // Sync roles only if roles are provided in the request
+            if ($request->has('roles')) {
+                $user->syncRoles($request->roles);
+            }
 
+            // Sync permissions only if permissions are provided in the request
+            if ($request->has('permissions')) {
+                $user->syncPermissions($request->permissions);
+            }
+            // Clear cache to reflect changes
             Artisan::call('cache:clear');
         }
 

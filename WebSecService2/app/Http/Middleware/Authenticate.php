@@ -1,15 +1,14 @@
 <?php
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 
 class Authenticate
 {
     protected function redirectTo(Request $request)
     {
-        // Check if the current route is 'forgetPasswordEmail'
-        if ($request->route()->getName() === 'forgetPasswordEmail') {
-            return null; // Do not redirect
-        }
+        // // Check if the current route is 'forgetPasswordEmail'
+        // if ($request->route()->getName() === 'forgetPasswordEmail') {
+        //     return null; // Do not redirect
+        // }
 
         if (!$request->expectsJson()) {
             return route('login'); // Redirect to login if not authenticated
