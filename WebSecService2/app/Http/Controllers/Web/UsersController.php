@@ -1,6 +1,9 @@
 <?php
 namespace App\Http\Controllers\Web;
 
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerificationEmail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Validation\Rules\Password;
@@ -8,7 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Carbon\Carbon;
 use Artisan;
+use Laravel\Socialite\Facades\Socialite;
+
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -16,6 +22,128 @@ use App\Models\User;
 class UsersController extends Controller {
 
 	use ValidatesRequests;
+
+    public function redirectToGoogle()
+    {
+    return Socialite::driver('google')->redirect();
+    }
+
+
+    public function handleGoogleCallback() {
+        try {
+            // Retrieve the Google user
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            // Log the Google user data for debugging
+            Log::info('Google User:', [
+                'id' => $googleUser->id,
+                'name' => $googleUser->name,
+                'email' => $googleUser->email,
+            ]);
+
+            // Find the user by email or create a new one
+            $user = User::where('email', $googleUser->email)->first();
+
+            if ($user) {
+                // Update the user's Google ID and token if they already exist
+                $user->update([
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'google_refresh_token' => $googleUser->refreshToken,
+                ]);
+            } else {
+                // Create a new user if they don't exist
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'google_refresh_token' => $googleUser->refreshToken,
+                    'password' => bcrypt('default_password'), // Set a default password
+                ]);
+            }
+            $user->assignRole('customer');
+
+            // Log the user in
+            Auth::login($user);
+
+            // Redirect to the home page or dashboard
+            return redirect('/')->with('success', 'Logged in successfully with Google!');
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Google Login Error:', ['message' => $e->getMessage()]);
+
+            // Redirect back to the login page with an error message
+            return redirect('/login')->with('error', 'Google login failed. Please try again.');
+        }
+    }
+
+
+    public function redirectToFacebook()
+    {
+        return Socialite::driver('facebook')->redirect();
+    }
+
+    public function handleFacebookCallback()
+    {
+
+        $facebookUser = Socialite::driver('facebook')->stateless()->user();
+
+        $user = User::firstOrCreate(
+            ['facebook_id' => $facebookUser->getId()],
+            [
+                'facebook_name' => $facebookUser->getName(),
+                'facebook_email' => $facebookUser->getEmail()
+            ]
+        );
+
+        Auth::login($user);
+
+        // try {
+        //     // Retrieve the Facebook user
+        //     $facebookUser = Socialite::driver('facebook')->stateless()->user();
+
+        //     // Log the Facebook user data for debugging
+        //     Log::info('Facebook User:', [
+        //         'id' => $facebookUser->id,
+        //         'name' => $facebookUser->name,
+        //         'email' => $facebookUser->email,
+        //     ]);
+
+        //     // Find the user by email or create a new one
+        //     $user = User::where('email', $facebookUser->email)->first();
+
+        //     if ($user) {
+        //         // Update the user's Facebook ID and token if they already exist
+        //         $user->update([
+        //             'facebook_id' => $facebookUser->id,
+        //             'facebook_token' => $facebookUser->token,
+        //         ]);
+        //     } else {
+        //         // Create a new user if they don't exist
+        //         $user = User::create([
+        //             'name' => $facebookUser->name,
+        //             'email' => $facebookUser->email,
+        //             'facebook_id' => $facebookUser->id,
+        //             'facebook_token' => $facebookUser->token,
+        //             'password' => bcrypt('default_password'), // Set a default password
+        //         ]);
+        //     }
+        //     $user->assignRole('customer');
+
+        //     // Log the user in
+        //     Auth::login($user);
+
+        //     // Redirect to the home page or dashboard
+        //     return redirect('/')->with('success', 'Logged in successfully with Facebook!');
+        // } catch (\Exception $e) {
+        //     // Log the error for debugging
+        //     Log::error('Facebook Login Error:', ['message' => $e->getMessage()]);
+
+        //     // Redirect back to the login page with an error message
+        //     return redirect('/login')->with('error', 'Facebook login failed. Please try again.');
+        // }
+    }
 
     public function list()
     {
@@ -47,7 +175,7 @@ class UsersController extends Controller {
             $this->validate($request, [
                 'name' => ['required', 'string', 'min:5'],
                 'email' => ['required', 'email', 'unique:users'],
-                'password' => ['required', 'confirmed', Password::min(6)->numbers()->letters()->mixedCase()->symbols()],
+                'password' => ['required', 'confirmed', Password::min(5)->numbers()->letters()->mixedCase()->symbols()],
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->withInput($request->input())->withErrors('Invalid registration information.');
@@ -59,12 +187,46 @@ class UsersController extends Controller {
         $user->password = bcrypt($request->password); // Secure
         $user->credit = 80000; // Assign 5000 credit to the user
         $user->save();
+        $title = "Verification Link";
+        $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));
+        $link = route("verify", ['token' => $token]);
+        Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
 
         // Assign the "customer" role to the user
         $user->assignRole('customer');
 
         return redirect('/');
     }
+
+    public function verify(Request $request) {
+        try {
+            // Decrypt the token
+            $decryptedData = json_decode(Crypt::decryptString($request->token), true);
+
+            // Find the user by ID
+            $user = User::find($decryptedData['id']);
+
+            // If the user is not found, return a 404 error
+            if (!$user) {
+                return abort(404, 'User not found.');
+            }
+
+            // Mark the user's email as verified
+            $user->email_verified_at = Carbon::now();
+
+            Log::info('Decrypted Data:', $decryptedData);
+            Log::info('User:', $user->toArray());
+
+            $user->save();
+
+
+            return view('users.verified', compact('user'));
+        } catch (\Exception $e) {
+            // Handle decryption or other errors
+            return abort(401, 'Invalid or expired verification link.');
+        }
+    }
+
     public function addUser()
 {
     if (!auth()->user()->hasPermissionTo('add_users')) {
@@ -80,7 +242,7 @@ class UsersController extends Controller {
 
     public function storeUser(Request $request)
     {
-        
+
         if(!auth()->user()->hasPermissionTo('add_users')) abort(401);
 
         Log::info('storeUser method called', ['request' => $request->all()]);
@@ -133,11 +295,18 @@ class UsersController extends Controller {
 
     public function doLogin(Request $request) {
 
+        $user = User::where('email', $request->email)->first();
+        if(!$user->email_verified_at)
+        return redirect()->back()->withInput($request->input())
+        ->withErrors('Your email is not verified.');
+
     	if(!Auth::attempt(['email' => $request->email, 'password' => $request->password]))
             return redirect()->back()->withInput($request->input())->withErrors('Invalid login information.');
 
         $user = User::where('email', $request->email)->first();
         Auth::setUser($user);
+
+
 
         return redirect('/');
     }

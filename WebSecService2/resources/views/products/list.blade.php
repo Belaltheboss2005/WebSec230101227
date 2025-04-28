@@ -20,6 +20,13 @@
     </div>
 </div>
 
+<div class="card my-2">
+    <div class="card-body">
+        Dear <span id='name'>{{ auth()->user()->name }}</span>, your credit is <span
+        id='credit'>{{ auth()->user()->credit }}</span>
+    </div>
+</div>
+
 <form>
     <div class="row">
         <div class="col col-sm-2">
@@ -53,6 +60,16 @@
         </div>
     </div>
 </form>
+
+@if(!empty(request()->keywords))
+    <div class= 'card mt-2'>
+        <div class='card-body'>
+            view search results: <span>{!! request()->keywords !!}</span>
+        </div>
+    </div>
+@endif
+
+
 
 @foreach($products as $product)
     <div class="card mt-2">
