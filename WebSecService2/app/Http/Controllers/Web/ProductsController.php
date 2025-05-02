@@ -146,4 +146,30 @@ class ProductsController extends Controller {
 
 		return redirect()->route('products_list');
 	}
+
+    public function returnProduct($userId, $productId)
+    {
+        $boughtProduct = BoughtProduct::where('user_id', $userId)->where('product_id', $productId)->firstOrFail();
+        $user = auth()->user();
+
+        // Check if the logged-in user is authorized to return the product
+        if ($boughtProduct->user_id !== $user->id && !$user->hasPermissionTo('return')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $product = $boughtProduct->product;
+
+        // Refund the user's credit
+        $user->credit += $product->price;
+        $user->save();
+
+        // Increase the product stock
+        $product->stock += 1;
+        $product->save();
+
+        // Delete the bought product record
+        $boughtProduct->delete();
+
+        return redirect()->route('bought_products')->with('success', 'Product returned successfully!');
+    }
 }

@@ -16,6 +16,7 @@
                     <th>User Name</th>
                     <th>Product Name</th>
                     <th>Purchased At</th>
+                    <th>Return</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,6 +26,11 @@
                     <td>{{ $boughtProduct->user->name }}</td>
                     <td>{{ $boughtProduct->product->name }}</td>
                     <td>{{ $boughtProduct->created_at->format('Y-m-d H:i:s') }}</td>
+                    <td>
+                        @can('return')
+                            <a class="btn btn-primary" href='{{route('return_product', [$boughtProduct->user_id, $boughtProduct->product_id])}}'>Return</a>
+                        @endcan
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

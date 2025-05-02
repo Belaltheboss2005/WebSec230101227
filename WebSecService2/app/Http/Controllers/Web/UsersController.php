@@ -29,9 +29,10 @@ class UsersController extends Controller {
     }
 
 
-    public function handleGoogleCallback() {
+    public function handleGoogleCallback()
+    {
         try {
-            // Retrieve the Google user
+            // Retrieve the Google user data
             $googleUser = Socialite::driver('google')->stateless()->user();
 
             // Log the Google user data for debugging
@@ -39,30 +40,38 @@ class UsersController extends Controller {
                 'id' => $googleUser->id,
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
+                'token' => $googleUser->token,
+                'refresh_token' => $googleUser->refreshToken,
             ]);
 
-            // Find the user by email or create a new one
+            // Check if the user already exists by email
             $user = User::where('email', $googleUser->email)->first();
 
+            // If the user exists, update their Google data
             if ($user) {
-                // Update the user's Google ID and token if they already exist
-                $user->update([
-                    'google_id' => $googleUser->id,
-                    'google_token' => $googleUser->token,
-                    'google_refresh_token' => $googleUser->refreshToken,
-                ]);
+                $user->google_id = $googleUser->id;
+                $user->google_token = $googleUser->token;
+                $user->google_refresh_token = $googleUser->refreshToken;
+                $user->save();
             } else {
-                // Create a new user if they don't exist
-                $user = User::create([
-                    'name' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'google_token' => $googleUser->token,
-                    'google_refresh_token' => $googleUser->refreshToken,
-                    'password' => bcrypt('default_password'), // Set a default password
-                ]);
+                // If the user doesn't exist, create a new one
+                $user = new User();
+                $user->name = $googleUser->name;
+                $user->email = $googleUser->email;
+                $user->google_id = $googleUser->id;
+                $user->google_token = $googleUser->token;
+                $user->google_refresh_token = $googleUser->refreshToken;
+                $user->password = bcrypt('default_password'); // Set a default password
+                $user->credit = 80000; // Assign 80000 credit to the user
+                $user->assignRole('customer');
+                $user->save();
+
+                // Send the verification email as in your doRegister method
+                $title = "Verification Link";
+                $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));
+                $link = route("verify", ['token' => $token]);
+                Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
             }
-            $user->assignRole('customer');
 
             // Log the user in
             Auth::login($user);
@@ -77,7 +86,6 @@ class UsersController extends Controller {
             return redirect('/login')->with('error', 'Google login failed. Please try again.');
         }
     }
-
 
     public function redirectToFacebook()
     {
@@ -99,6 +107,7 @@ class UsersController extends Controller {
 
         Auth::login($user);
 
+        return redirect('/')->with('success', 'Logged in successfully with Facebook!');
         // try {
         //     // Retrieve the Facebook user
         //     $facebookUser = Socialite::driver('facebook')->stateless()->user();
@@ -134,7 +143,7 @@ class UsersController extends Controller {
         //     // Log the user in
         //     Auth::login($user);
 
-        //     // Redirect to the home page or dashboard
+            // Redirect to the home page or dashboard
         //     return redirect('/')->with('success', 'Logged in successfully with Facebook!');
         // } catch (\Exception $e) {
         //     // Log the error for debugging
@@ -185,7 +194,7 @@ class UsersController extends Controller {
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password); // Secure
-        $user->credit = 80000; // Assign 5000 credit to the user
+        $user->credit = 80000; // Assign 80000 credit to the user
         $user->save();
         $title = "Verification Link";
         $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));

