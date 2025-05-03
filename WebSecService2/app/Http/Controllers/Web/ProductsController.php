@@ -18,6 +18,11 @@ class ProductsController extends Controller {
         $product = Product::findOrFail($id);
         $user = auth()->user();
 
+        // Check if the user's email is verified
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('products_list')->withErrors(['email' => 'You need to verify your email before purchasing products.']);
+        }
+
         // Check if the product is out of stock
         if ($product->stock <= 0) {
             return redirect()->route('products_list')->withErrors(['stock' => 'This product is out of stock and cannot be purchased.']);

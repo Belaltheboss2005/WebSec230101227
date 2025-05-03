@@ -35,7 +35,7 @@
           <th scope="col">Email</th>
           <th scope="col">Credit</th>
           <th scope="col">Roles</th>
-          <th scope="col"></th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       @foreach($users as $user)
@@ -58,6 +58,9 @@
           @endcan
           @can('delete_users')
           <a class="btn btn-danger" href='{{route('users_delete', [$user->id])}}'>Delete</a>
+          @endcan
+          @can('ban_users')
+          <a class="btn btn-warning" href='{{route('users_ban', [$user->id])}}'>Ban</a>
           @endcan
         </td>
       </tr>

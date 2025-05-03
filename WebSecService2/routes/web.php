@@ -5,6 +5,9 @@ use App\Http\Controllers\Web\ProductsController;
 use App\Http\Controllers\Web\UsersController;
 use App\Http\Controllers\Web\ForgetPasswordController;
 
+// Resend verification email route
+Route::post('/resend-verification', [UsersController::class, 'resendVerificationEmail'])->name('resend.verification');
+
 Route::get('register', [UsersController::class, 'register'])->name('register');
 Route::post('register', [UsersController::class, 'doRegister'])->name('do_register');
 Route::get('login', [UsersController::class, 'login'])->name('login');
@@ -62,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('users/save_password/{user}', [UsersController::class, 'savePassword'])->name('save_password');
     Route::get('/users/add', [UsersController::class, 'addUser'])->name('users_add');
     Route::post('/users/add', [UsersController::class, 'storeUser'])->name('users_store');
+    Route::get('users/ban/{user}', [UsersController::class, 'ban'])->name('users_ban');
 
     // Product routes
 
@@ -77,6 +81,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/return-product/{userId}/{productId}', [ProductsController::class, 'returnProduct'])->name('return_product');
 
 });
+
+Route::get('banned', function () {
+    return view('users.banned');
+})->name('banned_page');
 
 Route::get('/', function () {
     return view('welcome');

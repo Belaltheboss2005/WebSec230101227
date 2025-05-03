@@ -185,6 +185,7 @@ class UsersController extends Controller {
                 'name' => ['required', 'string', 'min:5'],
                 'email' => ['required', 'email', 'unique:users'],
                 'password' => ['required', 'confirmed', Password::min(5)->numbers()->letters()->mixedCase()->symbols()],
+                'email_verification' => ['required', 'in:now,later'],
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->withInput($request->input())->withErrors('Invalid registration information.');
@@ -196,15 +197,24 @@ class UsersController extends Controller {
         $user->password = bcrypt($request->password); // Secure
         $user->credit = 80000; // Assign 80000 credit to the user
         $user->save();
-        $title = "Verification Link";
-        $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));
-        $link = route("verify", ['token' => $token]);
-        Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
 
         // Assign the "customer" role to the user
         $user->assignRole('customer');
 
-        return redirect('/');
+        // Check email verification preference
+        if ($request->email_verification === 'now') {
+            $title = "Verification Link";
+            $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));
+            $link = route("verify", ['token' => $token]);
+            try {
+                Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
+                Log::info('Verification email sent successfully to ' . $user->email);
+            } catch (\Exception $e) {
+                Log::error('Failed to send verification email: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('users')->with('success', 'Registration successful!');
     }
 
     public function verify(Request $request) {
@@ -222,12 +232,7 @@ class UsersController extends Controller {
 
             // Mark the user's email as verified
             $user->email_verified_at = Carbon::now();
-
-            Log::info('Decrypted Data:', $decryptedData);
-            Log::info('User:', $user->toArray());
-
             $user->save();
-
 
             return view('users.verified', compact('user'));
         } catch (\Exception $e) {
@@ -302,20 +307,25 @@ class UsersController extends Controller {
         return view('users.login');
     }
 
-    public function doLogin(Request $request) {
-
+    public function doLogin(Request $request)
+    {
         $user = User::where('email', $request->email)->first();
-        if(!$user->email_verified_at)
-        return redirect()->back()->withInput($request->input())
-        ->withErrors('Your email is not verified.');
 
-    	if(!Auth::attempt(['email' => $request->email, 'password' => $request->password]))
-            return redirect()->back()->withInput($request->input())->withErrors('Invalid login information.');
+        if ($user->hasRole('Banned')) {
+            return redirect()->route('banned_page');
+        }
 
-        $user = User::where('email', $request->email)->first();
+        // if (!$user || !$user->email_verified_at) {
+        //     return redirect()->back()->withInput($request->input())
+        //         ->withErrors('Your email is not verified.');
+        // }
+
+        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            return redirect()->back()->withInput($request->input())
+                ->withErrors('Invalid login information.');
+        }
+
         Auth::setUser($user);
-
-
 
         return redirect('/');
     }
@@ -448,5 +458,38 @@ class UsersController extends Controller {
         $user->save();
 
         return redirect(route('profile', ['user'=>$user->id]));
+    }
+
+    public function resendVerificationEmail(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->back()->with('info', 'Your email is already verified.');
+        }
+
+        $title = "Verification Link";
+        $token = Crypt::encryptString(json_encode(['id' => $user->id, 'email' => $user->email]));
+        $link = route("verify", ['token' => $token]);
+        Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
+
+        return redirect(route('profile'))->with('success', 'Verification email has been resent.');
+    }
+
+    public function ban(User $user)
+    {
+        if (!auth()->user()->hasPermissionTo('ban_users')) {
+            abort(401); // Unauthorized
+        }
+
+        // Assign the 'Banned' role to the user
+        $user->syncRoles(['Banned']);
+
+        // Log the user out if they are currently logged in
+        if (Auth::id() === $user->id) {
+            Auth::logout();
+        }
+
+        return redirect()->route('users')->with('success', 'User has been banned successfully.');
     }
 }
