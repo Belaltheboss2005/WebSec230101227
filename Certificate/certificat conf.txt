@@ -1,0 +1,26 @@
+httpd-vhost
+
+<VirtualHost *:80>
+    ServerName websec.local.com
+	Redirect permanent / https://websec.local.com
+    DocumentRoot "D:/SUT/Web and Security Technologies/XAMP/htdocs/WebSec230101227/WebSecService2/public"
+    <Directory "D:/SUT/Web and Security Technologies/XAMP/htdocs/WebSec230101227/WebSecService2/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+
+httpd-ssl
+
+<VirtualHost *:443>
+    ServerName websec.local.com:443
+    DocumentRoot "D:\sut\web and security technologies\XAMP\htdocs\WebSec230101227\WebSecService2\public"
+    ServerAdmin admin@websec.local.com
+    ErrorLog "D:\sut\web and security technologies\xamp\apache\logs\error.log"
+    TransferLog "D:\sut\web and security technologies\xamp\apache\logs\access.log"
+   
+    SSLEngine on
+    SSLCertificateFile "conf/ssl.crt/websec.local.com.crt"
+    SSLCertificateKeyFile "conf/ssl.key/websec.local.com.key"
+</VirtualHost>    
