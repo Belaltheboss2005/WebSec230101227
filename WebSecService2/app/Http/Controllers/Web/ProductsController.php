@@ -177,4 +177,15 @@ class ProductsController extends Controller {
 
         return redirect()->route('bought_products')->with('success', 'Product returned successfully!');
     }
+
+    public function toggleFavorite(Product $product)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('Customer') || !$user->hasPermissionTo('favorite')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $product->favorite = !$product->favorite;
+        $product->save();
+        return redirect()->route('products_list')->with('success', 'Favorite status updated!');
+    }
 }

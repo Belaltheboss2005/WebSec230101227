@@ -107,6 +107,16 @@
                                 <button class="btn btn-secondary form-control" disabled>Out of Stock</button>
                             @endif
                         </div>
+                        <div class="col col-2">
+                            @if(auth()->user()->hasRole('Customer') && auth()->user()->hasPermissionTo('favorite'))
+                            <form method="POST" action="{{ route('products_favorite', $product->id) }}">
+                                @csrf
+                                <button type="submit" class="btn {{ $product->favorite ? 'btn-warning' : 'btn-outline-warning' }} form-control">
+                                    {{ $product->favorite ? 'Unfavorite' : 'Favorite' }}
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
 
                     <table class="table table-striped">

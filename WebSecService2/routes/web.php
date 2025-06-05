@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
         return view('products.insufficient_credit');
     })->name('insufficient_credit');
     Route::get('/return-product/{userId}/{productId}', [ProductsController::class, 'returnProduct'])->name('return_product');
+    Route::post('products/favorite/{product}', [ProductsController::class, 'toggleFavorite'])->name('products_favorite');
 
     Route::get('/cryptography', function (Request $request) {
         $data = $request->data??"Welcome to Cryptography";
